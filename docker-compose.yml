@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gestion_stock_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-gestion_stock}
+    ports:
+      - "5433:5432"
+    volumes:
+      - gestion_stock_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-gestion_stock}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: gestion_stock_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backups:/app/backups
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      API_ENV: production
+      API_SECRET_KEY: ${API_SECRET_KEY:-change_this_secret_key_min_32_characters_long}
+      API_TOKEN_EXPIRE_MINUTES: ${API_TOKEN_EXPIRE_MINUTES:-1440}
+      API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      PRIX_MARGE_MIN_PCT: ${PRIX_MARGE_MIN_PCT:-0}
+      PRIX_CONTROLE_COMMANDES: ${PRIX_CONTROLE_COMMANDES:-enforce}
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-gestion_stock}
+
+volumes:
+  gestion_stock_pgdata:
