@@ -1,0 +1,5 @@
+{
+  "name": "Gestion de Stock",
+  "description": "Application modulaire de gestion de stock, ventes, achats, tarification par niveaux, tournée vendeurs et portail client.",
+  "requestFramePermissions": []
+}
